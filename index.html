@@ -5,592 +5,155 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SMS Отправка</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Arial, sans-serif;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
         body {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            padding: 20px;
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); padding: 20px;
         }
-
         .container {
-            background: #ffffff;
-            border-radius: 16px;
-            padding: 40px;
-            width: 100%;
-            max-width: 520px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
+            background: #fff; border-radius: 16px; padding: 40px; width: 100%;
+            max-width: 520px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden;
         }
-
-        .header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 30px;
-        }
-
-        .header-icon {
-            width: 40px;
-            height: 40px;
-            flex-shrink: 0;
-        }
-
-        h1 {
-            font-size: 22px;
-            color: #1e3c72;
-            font-weight: 600;
-        }
-
-        .field {
-            margin-bottom: 18px;
-        }
-
-        label {
-            display: block;
-            font-size: 13px;
-            color: #666;
-            margin-bottom: 6px;
-            font-weight: 500;
-        }
-
+        .header { display: flex; align-items: center; gap: 12px; margin-bottom: 30px; }
+        .header-icon { width: 40px; height: 40px; flex-shrink: 0; }
+        h1 { font-size: 22px; color: #1e3c72; font-weight: 600; }
+        .field { margin-bottom: 18px; }
+        label { display: block; font-size: 13px; color: #666; margin-bottom: 6px; font-weight: 500; }
         input, textarea {
-            width: 100%;
-            padding: 12px 14px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 15px;
-            outline: none;
-            transition: border-color 0.2s;
-            resize: vertical;
-            background: #fff;
-            color: #222;
+            width: 100%; padding: 12px 14px; border: 2px solid #e0e0e0; border-radius: 10px;
+            font-size: 15px; outline: none; transition: border-color 0.2s; resize: vertical;
+            background: #fff; color: #222;
         }
+        input:focus, textarea:focus { border-color: #2a5298; }
+        textarea { min-height: 110px; font-family: inherit; }
 
-        input:focus, textarea:focus {
-            border-color: #2a5298;
+        .operator-line {
+            display: none; align-items: center; gap: 8px; margin-bottom: 8px;
+            font-size: 13px; color: #445; font-weight: 500; min-height: 20px;
         }
+        .operator-line.visible { display: flex; }
+        .operator-line-label { color: #8894a5; }
+        .operator-line-name { font-weight: 700; color: #1e3c72; }
 
-        textarea {
-            min-height: 110px;
-            font-family: inherit;
-        }
-
-        /* ==== Телефон: [флаг +код] [поле] ==== */
-        .phone-row {
-            display: flex;
-            gap: 8px;
-            align-items: stretch;
-            position: relative;
-        }
-
-        .country-picker {
-            position: relative;
-            flex: 0 0 auto;
-        }
-
+        .phone-row { display: flex; gap: 8px; align-items: stretch; position: relative; }
+        .country-picker { position: relative; flex: 0 0 auto; }
         .country-btn {
-            height: 100%;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 0 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            background: #fff;
-            cursor: pointer;
-            font-size: 15px;
-            color: #1e3c72;
-            font-weight: 600;
-            transition: border-color 0.2s, background 0.2s;
-            white-space: nowrap;
-            user-select: none;
+            height: 100%; display: flex; align-items: center; gap: 6px; padding: 0 12px;
+            border: 2px solid #e0e0e0; border-radius: 10px; background: #fff; cursor: pointer;
+            font-size: 15px; color: #1e3c72; font-weight: 600; transition: border-color 0.2s, background 0.2s;
+            white-space: nowrap; user-select: none;
         }
+        .country-btn:hover { border-color: #2a5298; background: #f6f8fb; }
+        .country-btn.open { border-color: #2a5298; }
+        .country-flag { font-size: 20px; line-height: 1; display: inline-block; }
+        .country-code { font-size: 15px; }
+        .caret { width: 10px; height: 10px; margin-left: 2px; transition: transform 0.2s; }
+        .country-btn.open .caret { transform: rotate(180deg); }
 
-        .country-btn:hover {
-            border-color: #2a5298;
-            background: #f6f8fb;
-        }
-
-        .country-btn.open {
-            border-color: #2a5298;
-        }
-
-        .country-flag {
-            font-size: 20px;
-            line-height: 1;
-            display: inline-block;
-        }
-
-        .country-code {
-            font-size: 15px;
-        }
-
-        .caret {
-            width: 10px;
-            height: 10px;
-            margin-left: 2px;
-            transition: transform 0.2s;
-        }
-
-        .country-btn.open .caret {
-            transform: rotate(180deg);
-        }
-
-        /* Кастомный список — выпадает ВНУТРИ контейнера */
         .country-list {
-            position: absolute;
-            top: calc(100% + 6px);
-            left: 0;
-            min-width: 220px;
-            max-height: 260px;
-            overflow-y: auto;
-            background: #fff;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
-            z-index: 50;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(-6px);
-            transition: opacity 0.18s, transform 0.18s, visibility 0.18s;
+            position: absolute; top: calc(100% + 6px); left: 0; min-width: 220px; max-height: 260px;
+            overflow-y: auto; background: #fff; border: 2px solid #e0e0e0; border-radius: 10px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.15); z-index: 50; opacity: 0; visibility: hidden;
+            transform: translateY(-6px); transition: opacity 0.18s, transform 0.18s, visibility 0.18s;
         }
-
-        .country-list.open {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
-
+        .country-list.open { opacity: 1; visibility: visible; transform: translateY(0); }
         .country-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 14px;
-            cursor: pointer;
-            font-size: 14px;
-            color: #222;
-            transition: background 0.15s;
+            display: flex; align-items: center; gap: 10px; padding: 10px 14px; cursor: pointer;
+            font-size: 14px; color: #222; transition: background 0.15s;
         }
-
-        .country-item:hover {
-            background: #f0f4fa;
-        }
-
-        .country-item.selected {
-            background: #e8f0fb;
-            font-weight: 600;
-            color: #1e3c72;
-        }
-
-        .country-item .ci-flag {
-            font-size: 20px;
-            line-height: 1;
-        }
-
-        .country-item .ci-code {
-            margin-left: auto;
-            color: #8894a5;
-            font-weight: 500;
-        }
-
-        .phone-row input {
-            flex: 1;
-            min-width: 0;
-        }
+        .country-item:hover { background: #f0f4fa; }
+        .country-item.selected { background: #e8f0fb; font-weight: 600; color: #1e3c72; }
+        .country-item .ci-flag { font-size: 20px; line-height: 1; }
+        .country-item .ci-code { margin-left: auto; color: #8894a5; font-weight: 500; }
+        .phone-row input { flex: 1; min-width: 0; }
 
         .btn {
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 10px;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            color: #fff;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.15s, box-shadow 0.15s;
-            margin-top: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
+            width: 100%; padding: 14px; border: none; border-radius: 10px;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: #fff;
+            font-size: 16px; font-weight: 600; cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s; margin-top: 8px;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
         }
+        .btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(30,60,114,0.4); }
+        .btn-icon { width: 20px; height: 20px; flex-shrink: 0; }
 
-        .btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(30, 60, 114, 0.4);
-        }
-
-        .btn-icon {
-            width: 20px;
-            height: 20px;
-            flex-shrink: 0;
-        }
-
-        /* Прогресс */
-        .progress-section {
-            display: none;
-            margin-top: 20px;
-        }
-
-        .progress-section.active {
-            display: block;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 12px;
-            background: #e8e8e8;
-            border-radius: 6px;
-            overflow: hidden;
-            margin-bottom: 12px;
-        }
-
+        .progress-section { display: none; margin-top: 20px; }
+        .progress-section.active { display: block; }
+        .progress-bar { width: 100%; height: 12px; background: #e8e8e8; border-radius: 6px; overflow: hidden; margin-bottom: 12px; }
         .progress-fill {
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, #1e3c72, #2a5298, #4facfe);
-            background-size: 200% 100%;
-            border-radius: 6px;
-            transition: width 0.2s ease;
-            animation: shimmer 2s infinite;
+            height: 100%; width: 0%; background: linear-gradient(90deg, #1e3c72, #2a5298, #4facfe);
+            background-size: 200% 100%; border-radius: 6px; transition: width 0.2s ease; animation: shimmer 2s infinite;
         }
+        @keyframes shimmer { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+        .status-text { font-size: 14px; color: #2a5298; text-align: center; font-weight: 500; }
+        .status-text.done { color: #1a7f37; }
 
-        @keyframes shimmer {
-            0% { background-position: 0% 50%; }
-            100% { background-position: 200% 50%; }
-        }
+        .char-counter-wrapper { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; gap: 10px; }
+        .char-counter { font-size: 12px; font-weight: 700; transition: color 0.4s ease; color: #1a7f37; white-space: nowrap; }
+        .char-track { flex: 1; height: 5px; background: #e8e8e8; border-radius: 3px; overflow: hidden; }
+        .char-track-fill { height: 100%; width: 0%; border-radius: 3px; transition: width 0.15s ease, background-color 0.4s ease; background: #1a7f37; }
+        .char-hint { font-size: 11px; color: #8894a5; margin-top: 5px; }
 
-        .status-text {
-            font-size: 14px;
-            color: #2a5298;
-            text-align: center;
-            font-weight: 500;
-        }
+        .success-block { display: none; text-align: center; }
+        .success-block.active { display: block; }
+        .check-wrapper { width: 90px; height: 90px; margin: 0 auto 20px; position: relative; }
+        .check-circle { width: 100%; height: 100%; border-radius: 50%; background: #e8f5ec; display: flex; align-items: center; justify-content: center; position: relative; }
+        .check-svg { width: 70px; height: 70px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        .check-svg circle { stroke: #1a7f37; stroke-width: 3; fill: none; stroke-dasharray: 166; stroke-dashoffset: 166; stroke-linecap: round; }
+        .check-svg path { stroke: #1a7f37; stroke-width: 4; fill: none; stroke-dasharray: 60; stroke-dashoffset: 60; stroke-linecap: round; stroke-linejoin: round; }
+        .success-block.active .check-svg circle { animation: drawCircle 0.6s ease-out forwards; }
+        .success-block.active .check-svg path { animation: drawCheck 0.4s 0.4s ease-out forwards; }
+        @keyframes drawCircle { to { stroke-dashoffset: 0; } }
+        @keyframes drawCheck { to { stroke-dashoffset: 0; } }
+        .success-title { font-size: 20px; color: #1a7f37; font-weight: 700; margin-bottom: 20px; opacity: 0; transform: translateY(10px); }
+        .success-block.active .success-title { animation: fadeUp 0.4s 0.7s forwards; }
+        @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
 
-        .status-text.done {
-            color: #1a7f37;
-        }
-
-        /* Счётчик символов */
-        .char-counter-wrapper {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 8px;
-            gap: 10px;
-        }
-
-        .char-counter {
-            font-size: 12px;
-            font-weight: 700;
-            transition: color 0.4s ease;
-            color: #1a7f37;
-            white-space: nowrap;
-        }
-
-        .char-track {
-            flex: 1;
-            height: 5px;
-            background: #e8e8e8;
-            border-radius: 3px;
-            overflow: hidden;
-        }
-
-        .char-track-fill {
-            height: 100%;
-            width: 0%;
-            border-radius: 3px;
-            transition: width 0.15s ease, background-color 0.4s ease;
-            background: #1a7f37;
-        }
-
-        .char-hint {
-            font-size: 11px;
-            color: #8894a5;
-            margin-top: 5px;
-        }
-
-        /* Экран успеха */
-        .success-block {
-            display: none;
-            text-align: center;
-        }
-
-        .success-block.active {
-            display: block;
-        }
-
-        .check-wrapper {
-            width: 90px;
-            height: 90px;
-            margin: 0 auto 20px;
-            position: relative;
-        }
-
-        .check-circle {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background: #e8f5ec;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-
-        .check-svg {
-            width: 70px;
-            height: 70px;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        .check-svg circle {
-            stroke: #1a7f37;
-            stroke-width: 3;
-            fill: none;
-            stroke-dasharray: 166;
-            stroke-dashoffset: 166;
-            stroke-linecap: round;
-        }
-
-        .check-svg path {
-            stroke: #1a7f37;
-            stroke-width: 4;
-            fill: none;
-            stroke-dasharray: 60;
-            stroke-dashoffset: 60;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-
-        .success-block.active .check-svg circle {
-            animation: drawCircle 0.6s ease-out forwards;
-        }
-
-        .success-block.active .check-svg path {
-            animation: drawCheck 0.4s 0.4s ease-out forwards;
-        }
-
-        @keyframes drawCircle {
-            to { stroke-dashoffset: 0; }
-        }
-
-        @keyframes drawCheck {
-            to { stroke-dashoffset: 0; }
-        }
-
-        .success-title {
-            font-size: 20px;
-            color: #1a7f37;
-            font-weight: 700;
-            margin-bottom: 20px;
-            opacity: 0;
-            transform: translateY(10px);
-        }
-
-        .success-block.active .success-title {
-            animation: fadeUp 0.4s 0.7s forwards;
-        }
-
-        @keyframes fadeUp {
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .details-card {
-            background: #f6f8fb;
-            border-radius: 12px;
-            padding: 16px 18px;
-            text-align: left;
-            margin-bottom: 14px;
-            opacity: 0;
-            transform: translateY(10px);
-        }
-
-        .success-block.active .details-card {
-            animation: fadeUp 0.4s 0.85s forwards;
-        }
-
-        .detail-row {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            padding: 10px 0;
-        }
-
-        .detail-row + .detail-row {
-            border-top: 1px solid #e6ebf2;
-        }
-
-        .detail-icon {
-            width: 20px;
-            height: 20px;
-            flex-shrink: 0;
-            margin-top: 1px;
-        }
-
-        .detail-label {
-            font-size: 12px;
-            color: #8894a5;
-            margin-bottom: 2px;
-            font-weight: 500;
-        }
-
-        .detail-value {
-            font-size: 14px;
-            color: #1e3c72;
-            font-weight: 600;
-            word-break: break-word;
-        }
-
-        /* Контейнер текста + значок в правом нижнем углу */
-        .message-box {
-            position: relative;
-            padding-right: 22px;
-        }
-
+        .details-card { background: #f6f8fb; border-radius: 12px; padding: 16px 18px; text-align: left; margin-bottom: 14px; opacity: 0; transform: translateY(10px); }
+        .success-block.active .details-card { animation: fadeUp 0.4s 0.85s forwards; }
+        .detail-row { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; }
+        .detail-row + .detail-row { border-top: 1px solid #e6ebf2; }
+        .detail-icon { width: 20px; height: 20px; flex-shrink: 0; margin-top: 1px; }
+        .detail-label { font-size: 12px; color: #8894a5; margin-bottom: 2px; font-weight: 500; }
+        .detail-value { font-size: 14px; color: #1e3c72; font-weight: 600; word-break: break-word; }
+        .message-box { position: relative; padding-right: 22px; }
         .detail-value.message-text {
-            font-weight: 400;
-            color: #445;
-            line-height: 1.4;
-            display: -webkit-box;
-            -webkit-line-clamp: 1;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            white-space: pre-wrap;
-            word-break: break-word;
+            font-weight: 400; color: #445; line-height: 1.4; display: -webkit-box;
+            -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;
+            white-space: pre-wrap; word-break: break-word;
         }
-
-        .detail-value.message-text.expanded {
-            display: block;
-            -webkit-line-clamp: unset;
-            overflow: visible;
-        }
-
-        /* Маленький значок-стрелочка в правом нижнем углу */
+        .detail-value.message-text.expanded { display: block; -webkit-line-clamp: unset; overflow: visible; }
         .message-toggle {
-            position: absolute;
-            right: 0;
-            bottom: 0;
-            width: 16px;
-            height: 16px;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            border-radius: 4px;
-            background: #eef2f8;
-            transition: background 0.15s;
+            position: absolute; right: 0; bottom: 0; width: 16px; height: 16px; display: none;
+            align-items: center; justify-content: center; cursor: pointer; border-radius: 4px;
+            background: #eef2f8; transition: background 0.15s;
         }
+        .message-toggle.visible { display: inline-flex; }
+        .message-toggle:hover { background: #dde6f4; }
+        .message-toggle .toggle-arrow { width: 9px; height: 9px; transition: transform 0.2s; }
+        .message-toggle.open .toggle-arrow { transform: rotate(180deg); }
 
-        .message-toggle.visible {
-            display: inline-flex;
-        }
+        .actions-row { display: flex; gap: 10px; opacity: 0; transform: translateY(10px); }
+        .success-block.active .actions-row { animation: fadeUp 0.4s 1s forwards; }
+        .new-btn { background: linear-gradient(135deg, #1a7f37 0%, #2ea44f 100%); margin-top: 0; }
+        .new-btn:hover { box-shadow: 0 8px 20px rgba(26,127,55,0.4) !important; }
+        .hidden { display: none; }
+        input.invalid, textarea.invalid { border-color: #d93025; animation: shake 0.3s; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
 
-        .message-toggle:hover {
-            background: #dde6f4;
-        }
-
-        .message-toggle .toggle-arrow {
-            width: 9px;
-            height: 9px;
-            transition: transform 0.2s;
-        }
-
-        .message-toggle.open .toggle-arrow {
-            transform: rotate(180deg);
-        }
-
-        .actions-row {
-            display: flex;
-            gap: 10px;
-            opacity: 0;
-            transform: translateY(10px);
-        }
-
-        .success-block.active .actions-row {
-            animation: fadeUp 0.4s 1s forwards;
-        }
-
-        .new-btn {
-            background: linear-gradient(135deg, #1a7f37 0%, #2ea44f 100%);
-            margin-top: 0;
-        }
-
-        .new-btn:hover {
-            box-shadow: 0 8px 20px rgba(26, 127, 55, 0.4) !important;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        input.invalid, textarea.invalid {
-            border-color: #d93025;
-            animation: shake 0.3s;
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-        }
-
-        /* ==== Свой toast (уведомление о стране) ==== */
         .country-toast {
-            position: absolute;
-            left: 50%;
-            top: -6px;
-            transform: translate(-50%, -100%) translateY(10px);
-            background: #1e3c72;
-            color: #fff;
-            padding: 8px 14px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            white-space: nowrap;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.25s, transform 0.25s;
-            z-index: 100;
+            position: absolute; left: 50%; top: -6px; transform: translate(-50%, -100%) translateY(10px);
+            background: #1e3c72; color: #fff; padding: 8px 14px; border-radius: 8px;
+            font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px;
+            white-space: nowrap; box-shadow: 0 8px 20px rgba(0,0,0,0.2); opacity: 0;
+            pointer-events: none; transition: opacity 0.25s, transform 0.25s; z-index: 100;
         }
-
         .country-toast::after {
-            content: "";
-            position: absolute;
-            bottom: -6px;
-            left: 50%;
-            transform: translateX(-50%);
-            border-width: 6px 6px 0 6px;
-            border-style: solid;
-            border-color: #1e3c72 transparent transparent transparent;
+            content: ""; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%);
+            border-width: 6px 6px 0 6px; border-style: solid; border-color: #1e3c72 transparent transparent transparent;
         }
-
-        .country-toast.show {
-            opacity: 1;
-            transform: translate(-50%, -100%) translateY(0);
-        }
-
-        .country-toast .ct-flag {
-            font-size: 16px;
-            line-height: 1;
-        }
+        .country-toast.show { opacity: 1; transform: translate(-50%, -100%) translateY(0); }
+        .country-toast .ct-flag { font-size: 16px; line-height: 1; }
     </style>
 </head>
 <body>
@@ -606,6 +169,10 @@
         <div id="formBlock">
             <div class="field">
                 <label for="phone">Номер телефона</label>
+                <div class="operator-line" id="operatorLine">
+                    <span class="operator-line-label">Оператор:</span>
+                    <span class="operator-line-name" id="operatorName">—</span>
+                </div>
                 <div class="phone-row">
                     <div class="country-picker">
                         <button type="button" class="country-btn" id="countryBtn" aria-haspopup="listbox" aria-expanded="false">
@@ -632,9 +199,7 @@
                 <label for="message">Текст сообщения</label>
                 <textarea id="message" placeholder="Введите текст SMS..." maxlength="300"></textarea>
                 <div class="char-counter-wrapper">
-                    <div class="char-track">
-                        <div class="char-track-fill" id="charTrackFill"></div>
-                    </div>
+                    <div class="char-track"><div class="char-track-fill" id="charTrackFill"></div></div>
                     <div class="char-counter" id="charCounter">0 / 300</div>
                 </div>
                 <div class="char-hint" id="charHint">Осталось: 300 · Частей SMS: 1</div>
@@ -648,9 +213,7 @@
         </div>
 
         <div class="progress-section" id="progressSection">
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill"></div>
-            </div>
+            <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
             <div class="status-text" id="statusText">Поиск номера...</div>
         </div>
 
@@ -663,67 +226,42 @@
                     </svg>
                 </div>
             </div>
-
             <div class="success-title">SMS отправлено</div>
-
             <div class="details-card">
                 <div class="detail-row">
-                    <svg class="detail-icon" viewBox="0 0 24 24" fill="none">
-                        <path d="M6.62 10.79C8.06 13.62 10.38 15.93 13.21 17.38L15.41 15.18C15.69 14.9 16.08 14.82 16.43 14.93C17.55 15.3 18.75 15.5 20 15.5C20.55 15.5 21 15.95 21 16.5V20C21 20.55 20.55 21 20 21C10.61 21 3 13.39 3 4C3 3.45 3.45 3 4 3H7.5C8.05 3 8.5 3.45 8.5 4C8.5 5.25 8.7 6.45 9.07 7.57C9.18 7.92 9.1 8.31 8.82 8.59L6.62 10.79Z" fill="#2a5298"/>
-                    </svg>
-                    <div>
-                        <div class="detail-label">Кому отправлено</div>
-                        <div class="detail-value" id="outPhone">—</div>
-                    </div>
+                    <svg class="detail-icon" viewBox="0 0 24 24" fill="none"><path d="M6.62 10.79C8.06 13.62 10.38 15.93 13.21 17.38L15.41 15.18C15.69 14.9 16.08 14.82 16.43 14.93C17.55 15.3 18.75 15.5 20 15.5C20.55 15.5 21 15.95 21 16.5V20C21 20.55 20.55 21 20 21C10.61 21 3 13.39 3 4C3 3.45 3.45 3 4 3H7.5C8.05 3 8.5 3.45 8.5 4C8.5 5.25 8.7 6.45 9.07 7.57C9.18 7.92 9.1 8.31 8.82 8.59L6.62 10.79Z" fill="#2a5298"/></svg>
+                    <div><div class="detail-label">Кому отправлено</div><div class="detail-value" id="outPhone">—</div></div>
                 </div>
                 <div class="detail-row">
-                    <svg class="detail-icon" viewBox="0 0 24 24" fill="none">
-                        <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z" fill="#2a5298"/>
-                    </svg>
-                    <div>
-                        <div class="detail-label">Отправитель</div>
-                        <div class="detail-value" id="outSender">—</div>
-                    </div>
+                    <svg class="detail-icon" viewBox="0 0 24 24" fill="none"><path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z" fill="#2a5298"/></svg>
+                    <div><div class="detail-label">Отправитель</div><div class="detail-value" id="outSender">—</div></div>
                 </div>
                 <div class="detail-row">
-                    <svg class="detail-icon" viewBox="0 0 24 24" fill="none">
-                        <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z" fill="#2a5298"/>
-                    </svg>
+                    <svg class="detail-icon" viewBox="0 0 24 24" fill="none"><path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z" fill="#2a5298"/></svg>
                     <div style="flex:1; min-width:0;">
                         <div class="detail-label">Текст сообщения</div>
-                       <div class="message-box">
+                        <div class="message-box">
                             <div class="detail-value message-text" id="outMessage">—</div>
                             <span class="message-toggle" id="messageToggle" title="Развернуть">
-                                <svg class="toggle-arrow" viewBox="0 0 10 10" fill="none">
-                                    <path d="M1 3L5 7L9 3" stroke="#2a5298" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
+                                <svg class="toggle-arrow" viewBox="0 0 10 10" fill="none"><path d="M1 3L5 7L9 3" stroke="#2a5298" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
                             </span>
                         </div>
                     </div>
                 </div>
                 <div class="detail-row">
-                    <svg class="detail-icon" viewBox="0 0 24 24" fill="none">
-                        <path d="M11.99 2C6.47 2 2 6.48 2 12C2 17.52 6.47 22 11.99 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 11.99 2ZM12 20C7.58 20 4 16.42 4 12C4 7.58 7.58 4 12 4C16.42 4 20 7.58 20 12C20 16.42 16.42 20 12 20ZM12.5 7H11V13L16.25 16.15L17 14.92L12.5 12.25V7Z" fill="#2a5298"/>
-                    </svg>
-                    <div>
-                        <div class="detail-label">Время отправки</div>
-                        <div class="detail-value" id="outTime">—</div>
-                    </div>
+                    <svg class="detail-icon" viewBox="0 0 24 24" fill="none"><path d="M11.99 2C6.47 2 2 6.48 2 12C2 17.52 6.47 22 11.99 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 11.99 2ZM12 20C7.58 20 4 16.42 4 12C4 7.58 7.58 4 12 4C16.42 4 20 7.58 20 12C20 16.42 16.42 20 12 20ZM12.5 7H11V13L16.25 16.15L17 14.92L12.5 12.25V7Z" fill="#2a5298"/></svg>
+                    <div><div class="detail-label">Время отправки</div><div class="detail-value" id="outTime">—</div></div>
                 </div>
             </div>
-
             <div class="actions-row">
                 <button class="btn new-btn" id="newBtn">
-                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none">
-                        <path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z" fill="#fff"/>
-                    </svg>
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none"><path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z" fill="#fff"/></svg>
                     Новое SMS
                 </button>
             </div>
         </div>
-                            </div>
-                            <script>
-    // ==== Элементы ====
+                </div>
+                <script>
     const formBlock = document.getElementById('formBlock');
     const progressSection = document.getElementById('progressSection');
     const successBlock = document.getElementById('successBlock');
@@ -753,6 +291,9 @@
     const outTime = document.getElementById('outTime');
     const messageToggle = document.getElementById('messageToggle');
 
+    const operatorLine = document.getElementById('operatorLine');
+    const operatorName = document.getElementById('operatorName');
+
     const MAX_LEN = 300;
     let progress = 0;
     let timer = null;
@@ -763,23 +304,30 @@
         { max: 100, text: 'Завершение...' }
     ];
 
-    // ==== Список стран ====
+    // ==== Операторы РФ (только названия) ====
+    const OPERATORS_RU = [
+        { name: 'МТС', prefixes: ['910','911','912','913','914','915','916','917','918','919','980','981','982','983','984','985','986','987','988','989','900','901','902','903','904','905','906','908','909','950','999'] },
+        { name: 'Билайн', prefixes: ['903','905','906','909','960','961','962','963','964','965','966','967','968'] },
+        { name: 'МегаФон', prefixes: ['920','921','922','923','924','925','926','927','928','929','930','931','932','933','934','935','936','937','938','939'] },
+        { name: 'Tele2', prefixes: ['900','901','902','904','908','950','951','952','953','954','955','956','957','958','959','977','991','992','993','994','995','996','997','998'] },
+        { name: 'Yota', prefixes: ['996','995','994'] }
+    ];
+
     const COUNTRIES = [
-        { iso: 'RU', name: 'Россия',         flag: '🇷🇺', code: '+7',   len: 11 },
-        { iso: 'KZ', name: 'Казахстан',      flag: '🇰🇿', code: '+7',   len: 11 },
-        { iso: 'BY', name: 'Беларусь',       flag: '🇧🇾', code: '+375', len: 12 },
-        { iso: 'UA', name: 'Украина',        flag: '🇺🇦', code: '+380', len: 12 },
-        { iso: 'US', name: 'США',            flag: '🇺🇸', code: '+1',   len: 11 },
-        { iso: 'DE', name: 'Германия',       flag: '🇩🇪', code: '+49',  len: 12 },
-        { iso: 'FR', name: 'Франция',        flag: '🇫🇷', code: '+33',  len: 11 },
-        { iso: 'GB', name: 'Великобритания', flag: '🇬🇧', code: '+44',  len: 12 },
-        { iso: 'CN', name: 'Китай',          flag: '🇨🇳', code: '+86',  len: 13 },
-        { iso: 'JP', name: 'Япония',         flag: '🇯🇵', code: '+81',  len: 12 }
+        { iso: 'RU', name: 'Россия', flag: '🇷🇺', code: '+7', len: 11 },
+        { iso: 'KZ', name: 'Казахстан', flag: '🇰🇿', code: '+7', len: 11 },
+        { iso: 'BY', name: 'Беларусь', flag: '🇧🇾', code: '+375', len: 12 },
+        { iso: 'UA', name: 'Украина', flag: '🇺🇦', code: '+380', len: 12 },
+        { iso: 'US', name: 'США', flag: '🇺🇸', code: '+1', len: 11 },
+        { iso: 'DE', name: 'Германия', flag: '🇩🇪', code: '+49', len: 12 },
+        { iso: 'FR', name: 'Франция', flag: '🇫🇷', code: '+33', len: 11 },
+        { iso: 'GB', name: 'Великобритания', flag: '🇬🇧', code: '+44', len: 12 },
+        { iso: 'CN', name: 'Китай', flag: '🇨🇳', code: '+86', len: 13 },
+        { iso: 'JP', name: 'Япония', flag: '🇯🇵', code: '+81', len: 12 }
     ];
 
     let currentCountry = COUNTRIES[0];
 
-    // ==== Построение списка ====
     function buildCountryList() {
         countryList.innerHTML = '';
         COUNTRIES.forEach(c => {
@@ -787,11 +335,7 @@
             item.className = 'country-item' + (c.iso === currentCountry.iso ? ' selected' : '');
             item.setAttribute('role', 'option');
             item.dataset.iso = c.iso;
-            item.innerHTML = `
-                <span class="ci-flag">${c.flag}</span>
-                <span>${c.name}</span>
-                <span class="ci-code">${c.code}</span>
-            `;
+            item.innerHTML = `<span class="ci-flag">${c.flag}</span><span>${c.name}</span><span class="ci-code">${c.code}</span>`;
             item.addEventListener('click', () => selectCountry(c));
             countryList.appendChild(item);
         });
@@ -802,58 +346,49 @@
         countryBtn.classList.add('open');
         countryBtn.setAttribute('aria-expanded', 'true');
     }
-
     function closeCountryList() {
         countryList.classList.remove('open');
         countryBtn.classList.remove('open');
         countryBtn.setAttribute('aria-expanded', 'false');
     }
-
     function toggleCountryList() {
-        if (countryList.classList.contains('open')) closeCountryList();
-        else openCountryList();
+        countryList.classList.contains('open') ? closeCountryList() : openCountryList();
     }
 
-    // ==== Свой toast о выборе страны ====
     let toastTimer = null;
     function showCountryToast(country) {
         toastFlag.textContent = country.flag;
         toastText.textContent = `Страна: ${country.name} (${country.code})`;
         countryToast.classList.add('show');
         clearTimeout(toastTimer);
-        toastTimer = setTimeout(() => {
-            countryToast.classList.remove('show');
-        }, 1600);
+        toastTimer = setTimeout(() => countryToast.classList.remove('show'), 1600);
     }
 
-    // ==== Выбор страны ====
     function selectCountry(country) {
         currentCountry = country;
         currentFlag.textContent = country.flag;
         currentCode.textContent = country.code;
-
         countryList.querySelectorAll('.country-item').forEach(el => {
             el.classList.toggle('selected', el.dataset.iso === country.iso);
         });
-
         closeCountryList();
 
         phoneInput.value = '';
         phoneInput.placeholder = country.code + ' (999) 123-45-67';
         phoneInput.focus();
 
+        operatorLine.classList.remove('visible');
+        operatorName.textContent = '—';
+
         showCountryToast(country);
     }
 
-    // ==== Закрытие списка по клику вне ====
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.country-picker')) closeCountryList();
     });
-
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') closeCountryList();
     });
-
     countryBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         toggleCountryList();
@@ -866,29 +401,20 @@
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') audioCtx.resume();
             const now = audioCtx.currentTime;
-            const notes = [
-                { freq: 880, start: 0, dur: 0.12 },
-                { freq: 1174.66, start: 0.1, dur: 0.2 }
-            ];
-            notes.forEach(n => {
+            [{ freq: 880, start: 0, dur: 0.12 }, { freq: 1174.66, start: 0.1, dur: 0.2 }].forEach(n => {
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
-                osc.type = 'sine';
-                osc.frequency.value = n.freq;
+                osc.type = 'sine'; osc.frequency.value = n.freq;
                 gain.gain.setValueAtTime(0, now + n.start);
                 gain.gain.linearRampToValueAtTime(0.18, now + n.start + 0.02);
                 gain.gain.exponentialRampToValueAtTime(0.0001, now + n.start + n.dur);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start(now + n.start);
-                osc.stop(now + n.start + n.dur + 0.02);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(now + n.start); osc.stop(now + n.start + n.dur + 0.02);
             });
         } catch (e) {}
     }
     function unlockAudio() {
-        if (!audioCtx) {
-            try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
-        }
+        if (!audioCtx) { try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
     }
     document.addEventListener('click', unlockAudio, { once: true });
     document.addEventListener('keydown', unlockAudio, { once: true });
@@ -898,10 +424,7 @@
         return `rgb(${Math.round(c1[0]+(c2[0]-c1[0])*t)}, ${Math.round(c1[1]+(c2[1]-c1[1])*t)}, ${Math.round(c1[2]+(c2[2]-c1[2])*t)})`;
     }
     function getProgressColor(ratio) {
-        const green  = [26, 127, 55];
-        const yellow = [230, 180, 0];
-        const orange = [240, 120, 0];
-        const red    = [217, 48, 37];
+        const green = [26,127,55], yellow = [230,180,0], orange = [240,120,0], red = [217,48,37];
         if (ratio <= 0.5) return lerpColor(green, yellow, ratio / 0.5);
         if (ratio <= 0.75) return lerpColor(yellow, orange, (ratio - 0.5) / 0.25);
         return lerpColor(orange, red, (ratio - 0.75) / 0.25);
@@ -920,7 +443,7 @@
     }
     messageInput.addEventListener('input', updateCharCounter);
     senderInput.addEventListener('input', updateCharCounter);
-                                        // ==== Маска телефона под выбранную страну ====
+                          // ==== Маска телефона под выбранную страну ====
         function formatPhoneByCountry(raw) {
             const codeDigits = currentCountry.code.replace(/\D/g, '');
             let digits = raw.replace(/\D/g, '');
@@ -940,10 +463,40 @@
         phoneInput.addEventListener('input', () => {
             phoneInput.value = formatPhoneByCountry(phoneInput.value);
             phoneInput.classList.remove('invalid');
+            updateOperatorLine();
         });
 
         function isValidPhone(value) {
             return value.replace(/\D/g, '').length >= currentCountry.len;
+        }
+
+        // ==== Определение оператора ====
+        function detectOperator(rawValue) {
+            const digits = rawValue.replace(/\D/g, '');
+            const codeDigits = currentCountry.code.replace(/\D/g, '');
+            let national = digits;
+            if (national.startsWith(codeDigits)) national = national.slice(codeDigits.length);
+            if (national.length < 3) return null;
+            const prefix = national.slice(0, 3);
+            if (currentCountry.iso !== 'RU') return null;
+            return OPERATORS_RU.find(op => op.prefixes.includes(prefix)) || null;
+        }
+
+        function updateOperatorLine() {
+            // Международная отправка для не-РФ
+            if (currentCountry.iso !== 'RU') {
+                operatorName.textContent = 'Международная отправка';
+                operatorLine.classList.add('visible');
+                return;
+            }
+            const op = detectOperator(phoneInput.value);
+            if (!op) {
+                operatorLine.classList.remove('visible');
+                operatorName.textContent = '—';
+                return;
+            }
+            operatorName.textContent = op.name;
+            operatorLine.classList.add('visible');
         }
 
         function updateStatus(percent) {
@@ -1033,7 +586,7 @@
             }, 200);
         }
 
-        // ==== Развернуть / свернуть текст сообщения ====
+        // ==== Развернуть / свернуть текст ====
         messageToggle.addEventListener('click', () => {
             const expanded = outMessage.classList.toggle('expanded');
             messageToggle.classList.toggle('open', expanded);
@@ -1067,4 +620,4 @@
         updateCharCounter();
     </script>
 </body>
-</html>
+</html>  
