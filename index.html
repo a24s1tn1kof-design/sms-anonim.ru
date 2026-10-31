@@ -28,7 +28,7 @@
             width: 100%;
             max-width: 520px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            overflow: hidden; /* ничего не вылазит */
+            overflow: hidden;
         }
 
         .header {
@@ -455,10 +455,62 @@
             word-break: break-word;
         }
 
+        /* Контейнер текста + значок в правом нижнем углу */
+        .message-box {
+            position: relative;
+            padding-right: 22px;
+        }
+
         .detail-value.message-text {
             font-weight: 400;
             color: #445;
             line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .detail-value.message-text.expanded {
+            display: block;
+            -webkit-line-clamp: unset;
+            overflow: visible;
+        }
+
+        /* Маленький значок-стрелочка в правом нижнем углу */
+        .message-toggle {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            width: 16px;
+            height: 16px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 4px;
+            background: #eef2f8;
+            transition: background 0.15s;
+        }
+
+        .message-toggle.visible {
+            display: inline-flex;
+        }
+
+        .message-toggle:hover {
+            background: #dde6f4;
+        }
+
+        .message-toggle .toggle-arrow {
+            width: 9px;
+            height: 9px;
+            transition: transform 0.2s;
+        }
+
+        .message-toggle.open .toggle-arrow {
+            transform: rotate(180deg);
         }
 
         .actions-row {
@@ -563,9 +615,7 @@
                                 <path d="M1 3L5 7L9 3" stroke="#1e3c72" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
                         </button>
-                        <div class="country-list" id="countryList" role="listbox">
-                            <!-- Заполняется через JS -->
-                        </div>
+                        <div class="country-list" id="countryList" role="listbox"></div>
                         <div class="country-toast" id="countryToast">
                             <span class="ct-flag" id="toastFlag">🇷🇺</span>
                             <span id="toastText">Страна: Россия (+7)</span>
@@ -580,14 +630,14 @@
             </div>
             <div class="field">
                 <label for="message">Текст сообщения</label>
-                <textarea id="message" placeholder="Введите текст SMS..." maxlength="230"></textarea>
+                <textarea id="message" placeholder="Введите текст SMS..." maxlength="300"></textarea>
                 <div class="char-counter-wrapper">
                     <div class="char-track">
                         <div class="char-track-fill" id="charTrackFill"></div>
                     </div>
-                    <div class="char-counter" id="charCounter">0 / 230</div>
+                    <div class="char-counter" id="charCounter">0 / 300</div>
                 </div>
-                <div class="char-hint" id="charHint">Осталось: 230 · Частей SMS: 1</div>
+                <div class="char-hint" id="charHint">Осталось: 300 · Частей SMS: 1</div>
             </div>
             <button class="btn" id="sendBtn">
                 <svg class="btn-icon" viewBox="0 0 24 24" fill="none">
@@ -641,7 +691,14 @@
                     </svg>
                     <div style="flex:1; min-width:0;">
                         <div class="detail-label">Текст сообщения</div>
-                        <div class="detail-value message-text" id="outMessage">—</div>
+                       <div class="message-box">
+                            <div class="detail-value message-text" id="outMessage">—</div>
+                            <span class="message-toggle" id="messageToggle" title="Развернуть">
+                                <svg class="toggle-arrow" viewBox="0 0 10 10" fill="none">
+                                    <path d="M1 3L5 7L9 3" stroke="#2a5298" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </span>
+                        </div>
                     </div>
                 </div>
                 <div class="detail-row">
@@ -664,8 +721,8 @@
                 </button>
             </div>
         </div>
-    </div>
-    <script>
+                            </div>
+                            <script>
     // ==== Элементы ====
     const formBlock = document.getElementById('formBlock');
     const progressSection = document.getElementById('progressSection');
@@ -694,8 +751,9 @@
     const outSender = document.getElementById('outSender');
     const outMessage = document.getElementById('outMessage');
     const outTime = document.getElementById('outTime');
+    const messageToggle = document.getElementById('messageToggle');
 
-    const MAX_LEN = 230;
+    const MAX_LEN = 300;
     let progress = 0;
     let timer = null;
 
@@ -707,16 +765,16 @@
 
     // ==== Список стран ====
     const COUNTRIES = [
-        { iso: 'RU', name: 'Россия',        flag: '🇷🇺', code: '+7',   len: 11 },
-        { iso: 'KZ', name: 'Казахстан',     flag: '🇰🇿', code: '+7',   len: 11 },
-        { iso: 'BY', name: 'Беларусь',      flag: '🇧🇾', code: '+375', len: 12 },
-        { iso: 'UA', name: 'Украина',       flag: '🇺🇦', code: '+380', len: 12 },
-        { iso: 'US', name: 'США',           flag: '🇺🇸', code: '+1',   len: 11 },
-        { iso: 'DE', name: 'Германия',      flag: '🇩🇪', code: '+49',  len: 12 },
-        { iso: 'FR', name: 'Франция',       flag: '🇫🇷', code: '+33',  len: 11 },
-        { iso: 'GB', name: 'Великобритания',flag: '🇬🇧', code: '+44',  len: 12 },
-        { iso: 'CN', name: 'Китай',         flag: '🇨🇳', code: '+86',  len: 13 },
-        { iso: 'JP', name: 'Япония',        flag: '🇯🇵', code: '+81',  len: 12 }
+        { iso: 'RU', name: 'Россия',         flag: '🇷🇺', code: '+7',   len: 11 },
+        { iso: 'KZ', name: 'Казахстан',      flag: '🇰🇿', code: '+7',   len: 11 },
+        { iso: 'BY', name: 'Беларусь',       flag: '🇧🇾', code: '+375', len: 12 },
+        { iso: 'UA', name: 'Украина',        flag: '🇺🇦', code: '+380', len: 12 },
+        { iso: 'US', name: 'США',            flag: '🇺🇸', code: '+1',   len: 11 },
+        { iso: 'DE', name: 'Германия',       flag: '🇩🇪', code: '+49',  len: 12 },
+        { iso: 'FR', name: 'Франция',        flag: '🇫🇷', code: '+33',  len: 11 },
+        { iso: 'GB', name: 'Великобритания', flag: '🇬🇧', code: '+44',  len: 12 },
+        { iso: 'CN', name: 'Китай',          flag: '🇨🇳', code: '+86',  len: 13 },
+        { iso: 'JP', name: 'Япония',         flag: '🇯🇵', code: '+81',  len: 12 }
     ];
 
     let currentCountry = COUNTRIES[0];
@@ -756,7 +814,7 @@
         else openCountryList();
     }
 
-    // ==== Свой toast-уведомление о выборе страны ====
+    // ==== Свой toast о выборе страны ====
     let toastTimer = null;
     function showCountryToast(country) {
         toastFlag.textContent = country.flag;
@@ -774,27 +832,22 @@
         currentFlag.textContent = country.flag;
         currentCode.textContent = country.code;
 
-        // Обновляем выделение в списке
         countryList.querySelectorAll('.country-item').forEach(el => {
             el.classList.toggle('selected', el.dataset.iso === country.iso);
         });
 
         closeCountryList();
 
-        // Очищаем и обновляем плейсхолдер под новую страну
         phoneInput.value = '';
         phoneInput.placeholder = country.code + ' (999) 123-45-67';
         phoneInput.focus();
 
-        // Показываем свой toast
         showCountryToast(country);
     }
 
     // ==== Закрытие списка по клику вне ====
     document.addEventListener('click', (e) => {
-        if (!e.target.closest('.country-picker')) {
-            closeCountryList();
-        }
+        if (!e.target.closest('.country-picker')) closeCountryList();
     });
 
     document.addEventListener('keydown', (e) => {
@@ -867,7 +920,7 @@
     }
     messageInput.addEventListener('input', updateCharCounter);
     senderInput.addEventListener('input', updateCharCounter);
-        // ==== Маска телефона под выбранную страну ====
+                                        // ==== Маска телефона под выбранную страну ====
         function formatPhoneByCountry(raw) {
             const codeDigits = currentCountry.code.replace(/\D/g, '');
             let digits = raw.replace(/\D/g, '');
@@ -960,8 +1013,16 @@
                         progressSection.classList.remove('active');
                         outPhone.textContent = sentData.phone;
                         outSender.textContent = sentData.sender;
-                        outMessage.textContent = sentData.message;
                         outTime.textContent = sentData.time;
+
+                        outMessage.textContent = sentData.message;
+                        outMessage.classList.remove('expanded');
+                        messageToggle.classList.remove('open');
+                        messageToggle.title = 'Развернуть';
+
+                        const isLong = sentData.message.length > 60 || sentData.message.includes('\n');
+                        messageToggle.classList.toggle('visible', isLong);
+
                         successBlock.classList.add('active');
                         playSuccessSound();
                     }, 600);
@@ -971,6 +1032,13 @@
                 }
             }, 200);
         }
+
+        // ==== Развернуть / свернуть текст сообщения ====
+        messageToggle.addEventListener('click', () => {
+            const expanded = outMessage.classList.toggle('expanded');
+            messageToggle.classList.toggle('open', expanded);
+            messageToggle.title = expanded ? 'Свернуть' : 'Развернуть';
+        });
 
         // ==== Сброс ====
         function resetForm() {
