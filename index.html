@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMS Отправка</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            padding: 20px;
+        }
+
+        .container {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 40px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .header-icon {
+            width: 40px;
+            height: 40px;
+        }
+
+        h1 {
+            font-size: 22px;
+            color: #1e3c72;
+            font-weight: 600;
+        }
+
+        .field {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+            resize: vertical;
+        }
+
+        input:focus, textarea:focus {
+            border-color: #2a5298;
+        }
+
+        textarea {
+            min-height: 100px;
+            font-family: inherit;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(30, 60, 114, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .progress-section {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .progress-section.active {
+            display: block;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: #e8e8e8;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #1e3c72, #2a5298, #4facfe);
+            background-size: 200% 100%;
+            border-radius: 6px;
+            transition: width 0.2s ease;
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+
+        .status-text {
+            font-size: 14px;
+            color: #2a5298;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .status-text.done {
+            color: #1a7f37;
+        }
+
+        .success-block {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .success-block.active {
+            display: block;
+        }
+
+        .success-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 15px;
+            animation: pop 0.4s ease;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0); }
+            70% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+
+        .success-text {
+            font-size: 18px;
+            color: #1a7f37;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .new-btn {
+            background: linear-gradient(135deg, #1a7f37 0%, #2ea44f 100%);
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <svg class="header-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z" fill="#2a5298"/>
+                <path d="M7 9H17V11H7V9ZM7 13H14V15H7V13Z" fill="#fff"/>
+            </svg>
+            <h1>Отправка SMS</h1>
+        </div>
+
+        <div id="formBlock">
+            <div class="field">
+                <label for="phone">Номер телефона</label>
+                <input type="tel" id="phone" placeholder="+7 (999) 123-45-67" autocomplete="off">
+            </div>
+            <div class="field">
+                <label for="sender">От какого имени</label>
+                <input type="text" id="sender" placeholder="Например: ИнфоСервис" autocomplete="off">
+            </div>
+            <div class="field">
+                <label for="message">Текст сообщения</label>
+                <textarea id="message" placeholder="Введите текст SMS..."></textarea>
+            </div>
+            <button class="btn" id="sendBtn">
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M2.01 21L23 12L2.01 3L2 10L17 12L2 14L2.01 21Z" fill="#fff"/>
+                </svg>
+                Отправить
+            </button>
+        </div>
+
+        <div class="progress-section" id="progressSection">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="status-text" id="statusText">Поиск номера...</div>
+        </div>
+
+        <div class="success-block" id="successBlock">
+            <svg class="success-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="11" fill="#1a7f37"/>
+                <path d="M7 12.5L10.5 16L17 8.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div class="success-text">SMS отправлено</div>
+            <button class="btn new-btn" id="newBtn">
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z" fill="#fff"/>
+                </svg>
+                Отправить новое
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const formBlock = document.getElementById('formBlock');
+        const progressSection = document.getElementById('progressSection');
+        const successBlock = document.getElementById('successBlock');
+        const progressFill = document.getElementById('progressFill');
+        const statusText = document.getElementById('statusText');
+        const sendBtn = document.getElementById('sendBtn');
+        const newBtn = document.getElementById('newBtn');
+
+        const phoneInput = document.getElementById('phone');
+        const senderInput = document.getElementById('sender');
+        const messageInput = document.getElementById('message');
+
+        const stages = [
+            { max: 30, text: 'Поиск номера...' },
+            { max: 70, text: 'Отправка SMS...' },
+            { max: 100, text: 'Завершение...' }
+        ];
+
+        let progress = 0;
+        let timer = null;
+
+        function updateStatus(percent) {
+            for (const stage of stages) {
+                if (percent <= stage.max) {
+                    statusText.textContent = stage.text;
+                    return;
+                }
+            }
+        }
+
+        function startSending() {
+            // Валидация
+            if (!phoneInput.value.trim()) {
+                phoneInput.focus();
+                return;
+            }
+            if (!senderInput.value.trim()) {
+                senderInput.focus();
+                return;
+            }
+            if (!messageInput.value.trim()) {
+                messageInput.focus();
+                return;
+            }
+
+            // Сброс и переключение интерфейса
+            progress = 0;
+            progressFill.style.width = '0%';
+            statusText.textContent = 'Поиск номера...';
+            statusText.classList.remove('done');
+            formBlock.classList.add('hidden');
+            successBlock.classList.remove('active');
+            progressSection.classList.add('active');
+
+            // Анимация прогресса
+            timer = setInterval(() => {
+                progress += Math.random() * 6 + 1;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(timer);
+                    progressFill.style.width = '100%';
+                    statusText.textContent = 'SMS отправлено';
+                    statusText.classList.add('done');
+
+                    // Небольшая пауза и показ финального экрана
+                    setTimeout(() => {
+                        progressSection.classList.remove('active');
+                        successBlock.classList.add('active');
+                    }, 600);
+                } else {
+                    progressFill.style.width = progress + '%';
+                    updateStatus(progress);
+                }
+            }, 200);
+        }
+
+        function resetForm() {
+            successBlock.classList.remove('active');
+            progressSection.classList.remove('active');
+            formBlock.classList.remove('hidden');
+            phoneInput.value = '';
+            senderInput.value = '';
+            messageInput.value = '';
+            phoneInput.focus();
+        }
+
+        sendBtn.addEventListener('click', startSending);
+        newBtn.addEventListener('click', resetForm);
+    </script>
+</body>
+  </html>
