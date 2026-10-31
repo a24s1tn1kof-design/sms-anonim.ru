@@ -26,8 +26,9 @@
             border-radius: 16px;
             padding: 40px;
             width: 100%;
-            max-width: 500px;
+            max-width: 520px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden; /* ничего не вылазит */
         }
 
         .header {
@@ -61,20 +62,20 @@
             font-weight: 500;
         }
 
-        input, textarea, select {
+        input, textarea {
             width: 100%;
             padding: 12px 14px;
             border: 2px solid #e0e0e0;
             border-radius: 10px;
             font-size: 15px;
             outline: none;
-            transition: border-color 0.2s, background-color 0.2s;
+            transition: border-color 0.2s;
             resize: vertical;
             background: #fff;
             color: #222;
         }
 
-        input:focus, textarea:focus, select:focus {
+        input:focus, textarea:focus {
             border-color: #2a5298;
         }
 
@@ -83,15 +84,122 @@
             font-family: inherit;
         }
 
+        /* ==== Телефон: [флаг +код] [поле] ==== */
         .phone-row {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             align-items: stretch;
+            position: relative;
         }
 
-        .country-select {
-            flex: 0 0 130px;
+        .country-picker {
+            position: relative;
+            flex: 0 0 auto;
+        }
+
+        .country-btn {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: #fff;
             cursor: pointer;
+            font-size: 15px;
+            color: #1e3c72;
+            font-weight: 600;
+            transition: border-color 0.2s, background 0.2s;
+            white-space: nowrap;
+            user-select: none;
+        }
+
+        .country-btn:hover {
+            border-color: #2a5298;
+            background: #f6f8fb;
+        }
+
+        .country-btn.open {
+            border-color: #2a5298;
+        }
+
+        .country-flag {
+            font-size: 20px;
+            line-height: 1;
+            display: inline-block;
+        }
+
+        .country-code {
+            font-size: 15px;
+        }
+
+        .caret {
+            width: 10px;
+            height: 10px;
+            margin-left: 2px;
+            transition: transform 0.2s;
+        }
+
+        .country-btn.open .caret {
+            transform: rotate(180deg);
+        }
+
+        /* Кастомный список — выпадает ВНУТРИ контейнера */
+        .country-list {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            min-width: 220px;
+            max-height: 260px;
+            overflow-y: auto;
+            background: #fff;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+            z-index: 50;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-6px);
+            transition: opacity 0.18s, transform 0.18s, visibility 0.18s;
+        }
+
+        .country-list.open {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .country-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #222;
+            transition: background 0.15s;
+        }
+
+        .country-item:hover {
+            background: #f0f4fa;
+        }
+
+        .country-item.selected {
+            background: #e8f0fb;
+            font-weight: 600;
+            color: #1e3c72;
+        }
+
+        .country-item .ci-flag {
+            font-size: 20px;
+            line-height: 1;
+        }
+
+        .country-item .ci-code {
+            margin-left: auto;
+            color: #8894a5;
+            font-weight: 500;
         }
 
         .phone-row input {
@@ -128,6 +236,7 @@
             flex-shrink: 0;
         }
 
+        /* Прогресс */
         .progress-section {
             display: none;
             margin-top: 20px;
@@ -172,6 +281,7 @@
             color: #1a7f37;
         }
 
+        /* Счётчик символов */
         .char-counter-wrapper {
             display: flex;
             justify-content: space-between;
@@ -210,6 +320,7 @@
             margin-top: 5px;
         }
 
+        /* Экран успеха */
         .success-block {
             display: none;
             text-align: center;
@@ -361,23 +472,6 @@
             animation: fadeUp 0.4s 1s forwards;
         }
 
-        .btn-secondary {
-            background: #fff;
-            color: #1e3c72;
-            border: 2px solid #1e3c72;
-            margin-top: 0;
-        }
-
-        .btn-secondary:hover {
-            background: #f0f4fa;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(30, 60, 114, 0.2);
-        }
-
-        .btn-secondary .btn-icon path {
-            fill: #1e3c72;
-        }
-
         .new-btn {
             background: linear-gradient(135deg, #1a7f37 0%, #2ea44f 100%);
             margin-top: 0;
@@ -391,7 +485,7 @@
             display: none;
         }
 
-        input.invalid, textarea.invalid, select.invalid {
+        input.invalid, textarea.invalid {
             border-color: #d93025;
             animation: shake 0.3s;
         }
@@ -400,6 +494,50 @@
             0%, 100% { transform: translateX(0); }
             25% { transform: translateX(-5px); }
             75% { transform: translateX(5px); }
+        }
+
+        /* ==== Свой toast (уведомление о стране) ==== */
+        .country-toast {
+            position: absolute;
+            left: 50%;
+            top: -6px;
+            transform: translate(-50%, -100%) translateY(10px);
+            background: #1e3c72;
+            color: #fff;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s, transform 0.25s;
+            z-index: 100;
+        }
+
+        .country-toast::after {
+            content: "";
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 6px 6px 0 6px;
+            border-style: solid;
+            border-color: #1e3c72 transparent transparent transparent;
+        }
+
+        .country-toast.show {
+            opacity: 1;
+            transform: translate(-50%, -100%) translateY(0);
+        }
+
+        .country-toast .ct-flag {
+            font-size: 16px;
+            line-height: 1;
         }
     </style>
 </head>
@@ -417,18 +555,22 @@
             <div class="field">
                 <label for="phone">Номер телефона</label>
                 <div class="phone-row">
-                    <select class="country-select" id="countrySelect" aria-label="Страна">
-                        <option value="RU" data-code="+7" data-len="11">RU +7</option>
-                        <option value="KZ" data-code="+7" data-len="11">KZ +7</option>
-                        <option value="BY" data-code="+375" data-len="12">BY +375</option>
-                        <option value="UA" data-code="+380" data-len="12">UA +380</option>
-                        <option value="US" data-code="+1" data-len="11">US +1</option>
-                        <option value="DE" data-code="+49" data-len="12">DE +49</option>
-                        <option value="FR" data-code="+33" data-len="11">FR +33</option>
-                        <option value="GB" data-code="+44" data-len="12">GB +44</option>
-                        <option value="CN" data-code="+86" data-len="13">CN +86</option>
-                        <option value="JP" data-code="+81" data-len="12">JP +81</option>
-                    </select>
+                    <div class="country-picker">
+                        <button type="button" class="country-btn" id="countryBtn" aria-haspopup="listbox" aria-expanded="false">
+                            <span class="country-flag" id="currentFlag">🇷🇺</span>
+                            <span class="country-code" id="currentCode">+7</span>
+                            <svg class="caret" viewBox="0 0 10 10" fill="none">
+                                <path d="M1 3L5 7L9 3" stroke="#1e3c72" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                        <div class="country-list" id="countryList" role="listbox">
+                            <!-- Заполняется через JS -->
+                        </div>
+                        <div class="country-toast" id="countryToast">
+                            <span class="ct-flag" id="toastFlag">🇷🇺</span>
+                            <span id="toastText">Страна: Россия (+7)</span>
+                        </div>
+                    </div>
                     <input type="tel" id="phone" placeholder="+7 (999) 123-45-67" autocomplete="off">
                 </div>
             </div>
@@ -524,6 +666,7 @@
         </div>
     </div>
     <script>
+    // ==== Элементы ====
     const formBlock = document.getElementById('formBlock');
     const progressSection = document.getElementById('progressSection');
     const successBlock = document.getElementById('successBlock');
@@ -535,10 +678,17 @@
     const phoneInput = document.getElementById('phone');
     const senderInput = document.getElementById('sender');
     const messageInput = document.getElementById('message');
-    const countrySelect = document.getElementById('countrySelect');
     const charCounter = document.getElementById('charCounter');
     const charTrackFill = document.getElementById('charTrackFill');
     const charHint = document.getElementById('charHint');
+
+    const countryBtn = document.getElementById('countryBtn');
+    const countryList = document.getElementById('countryList');
+    const currentFlag = document.getElementById('currentFlag');
+    const currentCode = document.getElementById('currentCode');
+    const countryToast = document.getElementById('countryToast');
+    const toastFlag = document.getElementById('toastFlag');
+    const toastText = document.getElementById('toastText');
 
     const outPhone = document.getElementById('outPhone');
     const outSender = document.getElementById('outSender');
@@ -555,22 +705,118 @@
         { max: 100, text: 'Завершение...' }
     ];
 
-    // ==== ЗВУК (Web Audio API) ====
-    let audioCtx = null;
+    // ==== Список стран ====
+    const COUNTRIES = [
+        { iso: 'RU', name: 'Россия',        flag: '🇷🇺', code: '+7',   len: 11 },
+        { iso: 'KZ', name: 'Казахстан',     flag: '🇰🇿', code: '+7',   len: 11 },
+        { iso: 'BY', name: 'Беларусь',      flag: '🇧🇾', code: '+375', len: 12 },
+        { iso: 'UA', name: 'Украина',       flag: '🇺🇦', code: '+380', len: 12 },
+        { iso: 'US', name: 'США',           flag: '🇺🇸', code: '+1',   len: 11 },
+        { iso: 'DE', name: 'Германия',      flag: '🇩🇪', code: '+49',  len: 12 },
+        { iso: 'FR', name: 'Франция',       flag: '🇫🇷', code: '+33',  len: 11 },
+        { iso: 'GB', name: 'Великобритания',flag: '🇬🇧', code: '+44',  len: 12 },
+        { iso: 'CN', name: 'Китай',         flag: '🇨🇳', code: '+86',  len: 13 },
+        { iso: 'JP', name: 'Япония',        flag: '🇯🇵', code: '+81',  len: 12 }
+    ];
 
+    let currentCountry = COUNTRIES[0];
+
+    // ==== Построение списка ====
+    function buildCountryList() {
+        countryList.innerHTML = '';
+        COUNTRIES.forEach(c => {
+            const item = document.createElement('div');
+            item.className = 'country-item' + (c.iso === currentCountry.iso ? ' selected' : '');
+            item.setAttribute('role', 'option');
+            item.dataset.iso = c.iso;
+            item.innerHTML = `
+                <span class="ci-flag">${c.flag}</span>
+                <span>${c.name}</span>
+                <span class="ci-code">${c.code}</span>
+            `;
+            item.addEventListener('click', () => selectCountry(c));
+            countryList.appendChild(item);
+        });
+    }
+
+    function openCountryList() {
+        countryList.classList.add('open');
+        countryBtn.classList.add('open');
+        countryBtn.setAttribute('aria-expanded', 'true');
+    }
+
+    function closeCountryList() {
+        countryList.classList.remove('open');
+        countryBtn.classList.remove('open');
+        countryBtn.setAttribute('aria-expanded', 'false');
+    }
+
+    function toggleCountryList() {
+        if (countryList.classList.contains('open')) closeCountryList();
+        else openCountryList();
+    }
+
+    // ==== Свой toast-уведомление о выборе страны ====
+    let toastTimer = null;
+    function showCountryToast(country) {
+        toastFlag.textContent = country.flag;
+        toastText.textContent = `Страна: ${country.name} (${country.code})`;
+        countryToast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+            countryToast.classList.remove('show');
+        }, 1600);
+    }
+
+    // ==== Выбор страны ====
+    function selectCountry(country) {
+        currentCountry = country;
+        currentFlag.textContent = country.flag;
+        currentCode.textContent = country.code;
+
+        // Обновляем выделение в списке
+        countryList.querySelectorAll('.country-item').forEach(el => {
+            el.classList.toggle('selected', el.dataset.iso === country.iso);
+        });
+
+        closeCountryList();
+
+        // Очищаем и обновляем плейсхолдер под новую страну
+        phoneInput.value = '';
+        phoneInput.placeholder = country.code + ' (999) 123-45-67';
+        phoneInput.focus();
+
+        // Показываем свой toast
+        showCountryToast(country);
+    }
+
+    // ==== Закрытие списка по клику вне ====
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.country-picker')) {
+            closeCountryList();
+        }
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeCountryList();
+    });
+
+    countryBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleCountryList();
+    });
+
+    // ==== Звук ====
+    let audioCtx = null;
     function playSuccessSound() {
         try {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') audioCtx.resume();
-
             const now = audioCtx.currentTime;
             const notes = [
                 { freq: 880, start: 0, dur: 0.12 },
                 { freq: 1174.66, start: 0.1, dur: 0.2 }
             ];
-
             notes.forEach(n => {
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
@@ -586,7 +832,6 @@
             });
         } catch (e) {}
     }
-
     function unlockAudio() {
         if (!audioCtx) {
             try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
@@ -595,103 +840,87 @@
     document.addEventListener('click', unlockAudio, { once: true });
     document.addEventListener('keydown', unlockAudio, { once: true });
 
-    // ==== ЦВЕТНОЙ СЧЁТЧИК ====
+    // ==== Цветной счётчик ====
     function lerpColor(c1, c2, t) {
         return `rgb(${Math.round(c1[0]+(c2[0]-c1[0])*t)}, ${Math.round(c1[1]+(c2[1]-c1[1])*t)}, ${Math.round(c1[2]+(c2[2]-c1[2])*t)})`;
     }
-
     function getProgressColor(ratio) {
         const green  = [26, 127, 55];
         const yellow = [230, 180, 0];
         const orange = [240, 120, 0];
         const red    = [217, 48, 37];
-
         if (ratio <= 0.5) return lerpColor(green, yellow, ratio / 0.5);
         if (ratio <= 0.75) return lerpColor(yellow, orange, (ratio - 0.5) / 0.25);
         return lerpColor(orange, red, (ratio - 0.75) / 0.25);
     }
-
     function updateCharCounter() {
         const len = messageInput.value.length;
         const ratio = Math.min(len / MAX_LEN, 1);
         const color = getProgressColor(ratio);
-
         charCounter.textContent = len + ' / ' + MAX_LEN;
         charCounter.style.color = color;
         charTrackFill.style.width = (ratio * 100) + '%';
         charTrackFill.style.backgroundColor = color;
-
         let smsCount = len <= 160 ? 1 : Math.ceil(len / 153);
         if (len === 0) smsCount = 1;
         charHint.textContent = `Осталось: ${MAX_LEN - len} · Частей SMS: ${smsCount}`;
     }
-
     messageInput.addEventListener('input', updateCharCounter);
     senderInput.addEventListener('input', updateCharCounter);
+        // ==== Маска телефона под выбранную страну ====
+        function formatPhoneByCountry(raw) {
+            const codeDigits = currentCountry.code.replace(/\D/g, '');
+            let digits = raw.replace(/\D/g, '');
+            if (digits.startsWith(codeDigits)) digits = digits.slice(codeDigits.length);
 
-    // ==== МАСКА ПО СТРАНЕ ====
-    function getCountryData() {
-        const opt = countrySelect.options[countrySelect.selectedIndex];
-        return {
-            code: opt.dataset.code,
-            len: parseInt(opt.dataset.len, 10)
-        };
-    }
-
-    function applyCountryMask() {
-        const data = getCountryData();
-        phoneInput.value = '';
-        phoneInput.placeholder = data.code + ' (___) ___-__-__';
-        phoneInput.focus();
-    }
-
-    function formatPhoneByCountry(raw) {
-        const data = getCountryData();
-        const codeDigits = data.code.replace(/\D/g, '');
-        let digits = raw.replace(/\D/g, '');
-        if (digits.startsWith(codeDigits)) digits = digits.slice(codeDigits.length);
-
-        let out = data.code;
-        if (digits.length > 0) {
-            out += ' (' + digits.slice(0, 3);
-            if (digits.length >= 3) out += ')';
-            if (digits.length > 3) out += ' ' + digits.slice(3, 6);
-            if (digits.length > 6) out += '-' + digits.slice(6, 8);
-            if (digits.length > 8) out += '-' + digits.slice(8, 10);
+            let out = currentCountry.code;
+            if (digits.length > 0) {
+                out += ' (' + digits.slice(0, 3);
+                if (digits.length >= 3) out += ')';
+                if (digits.length > 3) out += ' ' + digits.slice(3, 6);
+                if (digits.length > 6) out += '-' + digits.slice(6, 8);
+                if (digits.length > 8) out += '-' + digits.slice(8, 10);
+            }
+            return out;
         }
-        return out;
-    }
 
-    phoneInput.addEventListener('input', () => {
-        phoneInput.value = formatPhoneByCountry(phoneInput.value);
-        phoneInput.classList.remove('invalid');
-    });
+        phoneInput.addEventListener('input', () => {
+            phoneInput.value = formatPhoneByCountry(phoneInput.value);
+            phoneInput.classList.remove('invalid');
+        });
 
-    countrySelect.addEventListener('change', applyCountryMask);
-
-    // ==== ВАЛИДАЦИЯ ====
-    function isValidPhone(value) {
-        const data = getCountryData();
-        return value.replace(/\D/g, '').length >= data.len;
-    }
-
-    function updateStatus(percent) {
-        for (const s of stages) {
-            if (percent <= s.max) { statusText.textContent = s.text; return; }
+        function isValidPhone(value) {
+            return value.replace(/\D/g, '').length >= currentCountry.len;
         }
-    }
 
-    function formatTime(date) {
-        const pad = n => n.toString().padStart(2, '0');
-        return `${pad(date.getDate())}.${pad(date.getMonth()+1)}.${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
-    }
-             // ==== ОТПРАВКА ====
+        function updateStatus(percent) {
+            for (const s of stages) {
+                if (percent <= s.max) { statusText.textContent = s.text; return; }
+            }
+        }
+
+        function formatTime(date) {
+            const pad = n => n.toString().padStart(2, '0');
+            return `${pad(date.getDate())}.${pad(date.getMonth() + 1)}.${date.getFullYear()} ` +
+                   `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+        }
+
+        // ==== Отправка ====
         function startSending() {
             let hasError = false;
 
-            if (!isValidPhone(phoneInput.value)) { phoneInput.classList.add('invalid'); hasError = true; }
-            if (!senderInput.value.trim()) { senderInput.classList.add('invalid'); hasError = true; }
-            if (!messageInput.value.trim()) { messageInput.classList.add('invalid'); hasError = true; }
+            if (!isValidPhone(phoneInput.value)) {
+                phoneInput.classList.add('invalid');
+                hasError = true;
+            }
+            if (!senderInput.value.trim()) {
+                senderInput.classList.add('invalid');
+                hasError = true;
+            }
+            if (!messageInput.value.trim()) {
+                messageInput.classList.add('invalid');
+                hasError = true;
+            }
 
             if (hasError) {
                 [phoneInput, senderInput, messageInput].forEach(el => {
@@ -743,7 +972,7 @@
             }, 200);
         }
 
-        // ==== СБРОС ====
+        // ==== Сброс ====
         function resetForm() {
             successBlock.classList.remove('active');
             progressSection.classList.remove('active');
@@ -758,12 +987,16 @@
             phoneInput.focus();
         }
 
-        // ==== СЛУШАТЕЛИ ====
+        // ==== Слушатели ====
         sendBtn.addEventListener('click', startSending);
         newBtn.addEventListener('click', resetForm);
 
-        // Инициализация
+        // ==== Инициализация ====
+        buildCountryList();
+        currentFlag.textContent = currentCountry.flag;
+        currentCode.textContent = currentCountry.code;
+        phoneInput.placeholder = currentCountry.code + ' (999) 123-45-67';
         updateCharCounter();
     </script>
 </body>
-</html>   
+</html>
