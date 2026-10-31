@@ -26,7 +26,7 @@
             border-radius: 16px;
             padding: 40px;
             width: 100%;
-            max-width: 480px;
+            max-width: 500px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
 
@@ -61,24 +61,42 @@
             font-weight: 500;
         }
 
-        input, textarea {
+        input, textarea, select {
             width: 100%;
             padding: 12px 14px;
             border: 2px solid #e0e0e0;
             border-radius: 10px;
             font-size: 15px;
             outline: none;
-            transition: border-color 0.2s;
+            transition: border-color 0.2s, background-color 0.2s;
             resize: vertical;
+            background: #fff;
+            color: #222;
         }
 
-        input:focus, textarea:focus {
+        input:focus, textarea:focus, select:focus {
             border-color: #2a5298;
         }
 
         textarea {
-            min-height: 100px;
+            min-height: 110px;
             font-family: inherit;
+        }
+
+        .phone-row {
+            display: flex;
+            gap: 10px;
+            align-items: stretch;
+        }
+
+        .country-select {
+            flex: 0 0 130px;
+            cursor: pointer;
+        }
+
+        .phone-row input {
+            flex: 1;
+            min-width: 0;
         }
 
         .btn {
@@ -110,7 +128,6 @@
             flex-shrink: 0;
         }
 
-        /* Прогресс */
         .progress-section {
             display: none;
             margin-top: 20px;
@@ -155,7 +172,44 @@
             color: #1a7f37;
         }
 
-        /* Экран успеха */
+        .char-counter-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+            gap: 10px;
+        }
+
+        .char-counter {
+            font-size: 12px;
+            font-weight: 700;
+            transition: color 0.4s ease;
+            color: #1a7f37;
+            white-space: nowrap;
+        }
+
+        .char-track {
+            flex: 1;
+            height: 5px;
+            background: #e8e8e8;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .char-track-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 3px;
+            transition: width 0.15s ease, background-color 0.4s ease;
+            background: #1a7f37;
+        }
+
+        .char-hint {
+            font-size: 11px;
+            color: #8894a5;
+            margin-top: 5px;
+        }
+
         .success-block {
             display: none;
             text-align: center;
@@ -165,7 +219,6 @@
             display: block;
         }
 
-        /* Анимированная галочка */
         .check-wrapper {
             width: 90px;
             height: 90px;
@@ -245,13 +298,12 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Карточка с деталями отправки */
         .details-card {
             background: #f6f8fb;
             border-radius: 12px;
             padding: 16px 18px;
             text-align: left;
-            margin-bottom: 20px;
+            margin-bottom: 14px;
             opacity: 0;
             transform: translateY(10px);
         }
@@ -298,14 +350,37 @@
             line-height: 1.4;
         }
 
-        .new-btn {
-            background: linear-gradient(135deg, #1a7f37 0%, #2ea44f 100%);
+        .actions-row {
+            display: flex;
+            gap: 10px;
             opacity: 0;
             transform: translateY(10px);
         }
 
-        .success-block.active .new-btn {
+        .success-block.active .actions-row {
             animation: fadeUp 0.4s 1s forwards;
+        }
+
+        .btn-secondary {
+            background: #fff;
+            color: #1e3c72;
+            border: 2px solid #1e3c72;
+            margin-top: 0;
+        }
+
+        .btn-secondary:hover {
+            background: #f0f4fa;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(30, 60, 114, 0.2);
+        }
+
+        .btn-secondary .btn-icon path {
+            fill: #1e3c72;
+        }
+
+        .new-btn {
+            background: linear-gradient(135deg, #1a7f37 0%, #2ea44f 100%);
+            margin-top: 0;
         }
 
         .new-btn:hover {
@@ -316,20 +391,7 @@
             display: none;
         }
 
-        /* Номер символов в textarea */
-        .char-counter {
-            text-align: right;
-            font-size: 12px;
-            color: #8894a5;
-            margin-top: 4px;
-        }
-
-        .char-counter.limit {
-            color: #d93025;
-        }
-
-        /* Маска невалидного ввода */
-        input.invalid {
+        input.invalid, textarea.invalid, select.invalid {
             border-color: #d93025;
             animation: shake 0.3s;
         }
@@ -344,7 +406,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <svg class="header-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg class="header-icon" viewBox="0 0 24 24" fill="none">
                 <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z" fill="#2a5298"/>
                 <path d="M7 9H17V11H7V9ZM7 13H14V15H7V13Z" fill="#fff"/>
             </svg>
@@ -354,7 +416,21 @@
         <div id="formBlock">
             <div class="field">
                 <label for="phone">Номер телефона</label>
-                <input type="tel" id="phone" placeholder="+7 (999) 123-45-67" autocomplete="off">
+                <div class="phone-row">
+                    <select class="country-select" id="countrySelect" aria-label="Страна">
+                        <option value="RU" data-code="+7" data-len="11">RU +7</option>
+                        <option value="KZ" data-code="+7" data-len="11">KZ +7</option>
+                        <option value="BY" data-code="+375" data-len="12">BY +375</option>
+                        <option value="UA" data-code="+380" data-len="12">UA +380</option>
+                        <option value="US" data-code="+1" data-len="11">US +1</option>
+                        <option value="DE" data-code="+49" data-len="12">DE +49</option>
+                        <option value="FR" data-code="+33" data-len="11">FR +33</option>
+                        <option value="GB" data-code="+44" data-len="12">GB +44</option>
+                        <option value="CN" data-code="+86" data-len="13">CN +86</option>
+                        <option value="JP" data-code="+81" data-len="12">JP +81</option>
+                    </select>
+                    <input type="tel" id="phone" placeholder="+7 (999) 123-45-67" autocomplete="off">
+                </div>
             </div>
             <div class="field">
                 <label for="sender">От какого имени</label>
@@ -362,11 +438,17 @@
             </div>
             <div class="field">
                 <label for="message">Текст сообщения</label>
-                <textarea id="message" placeholder="Введите текст SMS..." maxlength="160"></textarea>
-                <div class="char-counter" id="charCounter">0 / 160</div>
+                <textarea id="message" placeholder="Введите текст SMS..." maxlength="230"></textarea>
+                <div class="char-counter-wrapper">
+                    <div class="char-track">
+                        <div class="char-track-fill" id="charTrackFill"></div>
+                    </div>
+                    <div class="char-counter" id="charCounter">0 / 230</div>
+                </div>
+                <div class="char-hint" id="charHint">Осталось: 230 · Частей SMS: 1</div>
             </div>
             <button class="btn" id="sendBtn">
-                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none">
                     <path d="M2.01 21L23 12L2.01 3L2 10L17 12L2 14L2.01 21Z" fill="#fff"/>
                 </svg>
                 Отправить
@@ -380,7 +462,6 @@
             <div class="status-text" id="statusText">Поиск номера...</div>
         </div>
 
-        <!-- ЭКРАН УСПЕХА -->
         <div class="success-block" id="successBlock">
             <div class="check-wrapper">
                 <div class="check-circle">
@@ -395,7 +476,7 @@
 
             <div class="details-card">
                 <div class="detail-row">
-                    <svg class="detail-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg class="detail-icon" viewBox="0 0 24 24" fill="none">
                         <path d="M6.62 10.79C8.06 13.62 10.38 15.93 13.21 17.38L15.41 15.18C15.69 14.9 16.08 14.82 16.43 14.93C17.55 15.3 18.75 15.5 20 15.5C20.55 15.5 21 15.95 21 16.5V20C21 20.55 20.55 21 20 21C10.61 21 3 13.39 3 4C3 3.45 3.45 3 4 3H7.5C8.05 3 8.5 3.45 8.5 4C8.5 5.25 8.7 6.45 9.07 7.57C9.18 7.92 9.1 8.31 8.82 8.59L6.62 10.79Z" fill="#2a5298"/>
                     </svg>
                     <div>
@@ -404,7 +485,7 @@
                     </div>
                 </div>
                 <div class="detail-row">
-                    <svg class="detail-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg class="detail-icon" viewBox="0 0 24 24" fill="none">
                         <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z" fill="#2a5298"/>
                     </svg>
                     <div>
@@ -413,16 +494,16 @@
                     </div>
                 </div>
                 <div class="detail-row">
-                    <svg class="detail-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg class="detail-icon" viewBox="0 0 24 24" fill="none">
                         <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z" fill="#2a5298"/>
                     </svg>
-                    <div>
+                    <div style="flex:1; min-width:0;">
                         <div class="detail-label">Текст сообщения</div>
                         <div class="detail-value message-text" id="outMessage">—</div>
                     </div>
                 </div>
                 <div class="detail-row">
-                    <svg class="detail-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <svg class="detail-icon" viewBox="0 0 24 24" fill="none">
                         <path d="M11.99 2C6.47 2 2 6.48 2 12C2 17.52 6.47 22 11.99 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 11.99 2ZM12 20C7.58 20 4 16.42 4 12C4 7.58 7.58 4 12 4C16.42 4 20 7.58 20 12C20 16.42 16.42 20 12 20ZM12.5 7H11V13L16.25 16.15L17 14.92L12.5 12.25V7Z" fill="#2a5298"/>
                     </svg>
                     <div>
@@ -432,101 +513,185 @@
                 </div>
             </div>
 
-            <button class="btn new-btn" id="newBtn">
-                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z" fill="#fff"/>
-                </svg>
-                Отправить новое
-            </button>
+            <div class="actions-row">
+                <button class="btn new-btn" id="newBtn">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none">
+                        <path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z" fill="#fff"/>
+                    </svg>
+                    Новое SMS
+                </button>
+            </div>
         </div>
     </div>
-
     <script>
-        const formBlock = document.getElementById('formBlock');
-        const progressSection = document.getElementById('progressSection');
-        const successBlock = document.getElementById('successBlock');
-        const progressFill = document.getElementById('progressFill');
-        const statusText = document.getElementById('statusText');
-        const sendBtn = document.getElementById('sendBtn');
-        const newBtn = document.getElementById('newBtn');
+    const formBlock = document.getElementById('formBlock');
+    const progressSection = document.getElementById('progressSection');
+    const successBlock = document.getElementById('successBlock');
+    const progressFill = document.getElementById('progressFill');
+    const statusText = document.getElementById('statusText');
+    const sendBtn = document.getElementById('sendBtn');
+    const newBtn = document.getElementById('newBtn');
 
-        const phoneInput = document.getElementById('phone');
-        const senderInput = document.getElementById('sender');
-        const messageInput = document.getElementById('message');
-        const charCounter = document.getElementById('charCounter');
+    const phoneInput = document.getElementById('phone');
+    const senderInput = document.getElementById('sender');
+    const messageInput = document.getElementById('message');
+    const countrySelect = document.getElementById('countrySelect');
+    const charCounter = document.getElementById('charCounter');
+    const charTrackFill = document.getElementById('charTrackFill');
+    const charHint = document.getElementById('charHint');
 
-        const outPhone = document.getElementById('outPhone');
-        const outSender = document.getElementById('outSender');
-        const outMessage = document.getElementById('outMessage');
-        const outTime = document.getElementById('outTime');
+    const outPhone = document.getElementById('outPhone');
+    const outSender = document.getElementById('outSender');
+    const outMessage = document.getElementById('outMessage');
+    const outTime = document.getElementById('outTime');
 
-        const stages = [
-            { max: 30, text: 'Поиск номера...' },
-            { max: 70, text: 'Отправка SMS...' },
-            { max: 100, text: 'Завершение...' }
-        ];
+    const MAX_LEN = 230;
+    let progress = 0;
+    let timer = null;
 
-        let progress = 0;
-        let timer = null;
+    const stages = [
+        { max: 30, text: 'Поиск номера...' },
+        { max: 70, text: 'Отправка SMS...' },
+        { max: 100, text: 'Завершение...' }
+    ];
 
-        // === Счётчик символов ===
-        messageInput.addEventListener('input', () => {
-            const len = messageInput.value.length;
-            charCounter.textContent = len + ' / 160';
-            charCounter.classList.toggle('limit', len >= 150);
-        });
+    // ==== ЗВУК (Web Audio API) ====
+    let audioCtx = null;
 
-        // === Маска телефона ===
-        phoneInput.addEventListener('input', () => {
-            let digits = phoneInput.value.replace(/\D/g, '');
-            if (digits.startsWith('8')) digits = '7' + digits.slice(1);
-            if (!digits.startsWith('7') && digits.length > 0) digits = '7' + digits;
-
-            let formatted = '';
-            if (digits.length > 0) formatted = '+7';
-            if (digits.length > 1) formatted += ' (' + digits.slice(1, 4);
-            if (digits.length >= 5) formatted += ') ' + digits.slice(4, 7);
-            if (digits.length >= 8) formatted += '-' + digits.slice(7, 9);
-            if (digits.length >= 10) formatted += '-' + digits.slice(9, 11);
-
-            phoneInput.value = formatted;
-            phoneInput.classList.remove('invalid');
-        });
-
-        function isValidPhone(value) {
-            return value.replace(/\D/g, '').length >= 11;
-        }
-
-        function updateStatus(percent) {
-            for (const stage of stages) {
-                if (percent <= stage.max) {
-                    statusText.textContent = stage.text;
-                    return;
-                }
+    function playSuccessSound() {
+        try {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             }
-        }
+            if (audioCtx.state === 'suspended') audioCtx.resume();
 
-        function formatTime(date) {
-            const pad = n => n.toString().padStart(2, '0');
-            return `${pad(date.getDate())}.${pad(date.getMonth() + 1)}.${date.getFullYear()} ` +
-                   `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
-        }
+            const now = audioCtx.currentTime;
+            const notes = [
+                { freq: 880, start: 0, dur: 0.12 },
+                { freq: 1174.66, start: 0.1, dur: 0.2 }
+            ];
 
+            notes.forEach(n => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = n.freq;
+                gain.gain.setValueAtTime(0, now + n.start);
+                gain.gain.linearRampToValueAtTime(0.18, now + n.start + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + n.start + n.dur);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now + n.start);
+                osc.stop(now + n.start + n.dur + 0.02);
+            });
+        } catch (e) {}
+    }
+
+    function unlockAudio() {
+        if (!audioCtx) {
+            try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
+        }
+    }
+    document.addEventListener('click', unlockAudio, { once: true });
+    document.addEventListener('keydown', unlockAudio, { once: true });
+
+    // ==== ЦВЕТНОЙ СЧЁТЧИК ====
+    function lerpColor(c1, c2, t) {
+        return `rgb(${Math.round(c1[0]+(c2[0]-c1[0])*t)}, ${Math.round(c1[1]+(c2[1]-c1[1])*t)}, ${Math.round(c1[2]+(c2[2]-c1[2])*t)})`;
+    }
+
+    function getProgressColor(ratio) {
+        const green  = [26, 127, 55];
+        const yellow = [230, 180, 0];
+        const orange = [240, 120, 0];
+        const red    = [217, 48, 37];
+
+        if (ratio <= 0.5) return lerpColor(green, yellow, ratio / 0.5);
+        if (ratio <= 0.75) return lerpColor(yellow, orange, (ratio - 0.5) / 0.25);
+        return lerpColor(orange, red, (ratio - 0.75) / 0.25);
+    }
+
+    function updateCharCounter() {
+        const len = messageInput.value.length;
+        const ratio = Math.min(len / MAX_LEN, 1);
+        const color = getProgressColor(ratio);
+
+        charCounter.textContent = len + ' / ' + MAX_LEN;
+        charCounter.style.color = color;
+        charTrackFill.style.width = (ratio * 100) + '%';
+        charTrackFill.style.backgroundColor = color;
+
+        let smsCount = len <= 160 ? 1 : Math.ceil(len / 153);
+        if (len === 0) smsCount = 1;
+        charHint.textContent = `Осталось: ${MAX_LEN - len} · Частей SMS: ${smsCount}`;
+    }
+
+    messageInput.addEventListener('input', updateCharCounter);
+    senderInput.addEventListener('input', updateCharCounter);
+
+    // ==== МАСКА ПО СТРАНЕ ====
+    function getCountryData() {
+        const opt = countrySelect.options[countrySelect.selectedIndex];
+        return {
+            code: opt.dataset.code,
+            len: parseInt(opt.dataset.len, 10)
+        };
+    }
+
+    function applyCountryMask() {
+        const data = getCountryData();
+        phoneInput.value = '';
+        phoneInput.placeholder = data.code + ' (___) ___-__-__';
+        phoneInput.focus();
+    }
+
+    function formatPhoneByCountry(raw) {
+        const data = getCountryData();
+        const codeDigits = data.code.replace(/\D/g, '');
+        let digits = raw.replace(/\D/g, '');
+        if (digits.startsWith(codeDigits)) digits = digits.slice(codeDigits.length);
+
+        let out = data.code;
+        if (digits.length > 0) {
+            out += ' (' + digits.slice(0, 3);
+            if (digits.length >= 3) out += ')';
+            if (digits.length > 3) out += ' ' + digits.slice(3, 6);
+            if (digits.length > 6) out += '-' + digits.slice(6, 8);
+            if (digits.length > 8) out += '-' + digits.slice(8, 10);
+        }
+        return out;
+    }
+
+    phoneInput.addEventListener('input', () => {
+        phoneInput.value = formatPhoneByCountry(phoneInput.value);
+        phoneInput.classList.remove('invalid');
+    });
+
+    countrySelect.addEventListener('change', applyCountryMask);
+
+    // ==== ВАЛИДАЦИЯ ====
+    function isValidPhone(value) {
+        const data = getCountryData();
+        return value.replace(/\D/g, '').length >= data.len;
+    }
+
+    function updateStatus(percent) {
+        for (const s of stages) {
+            if (percent <= s.max) { statusText.textContent = s.text; return; }
+        }
+    }
+
+    function formatTime(date) {
+        const pad = n => n.toString().padStart(2, '0');
+        return `${pad(date.getDate())}.${pad(date.getMonth()+1)}.${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+    }
+             // ==== ОТПРАВКА ====
         function startSending() {
             let hasError = false;
 
-            if (!isValidPhone(phoneInput.value)) {
-                phoneInput.classList.add('invalid');
-                hasError = true;
-            }
-            if (!senderInput.value.trim()) {
-                senderInput.classList.add('invalid');
-                hasError = true;
-            }
-            if (!messageInput.value.trim()) {
-                messageInput.classList.add('invalid');
-                hasError = true;
-            }
+            if (!isValidPhone(phoneInput.value)) { phoneInput.classList.add('invalid'); hasError = true; }
+            if (!senderInput.value.trim()) { senderInput.classList.add('invalid'); hasError = true; }
+            if (!messageInput.value.trim()) { messageInput.classList.add('invalid'); hasError = true; }
 
             if (hasError) {
                 [phoneInput, senderInput, messageInput].forEach(el => {
@@ -538,7 +703,6 @@
                 return;
             }
 
-            // Сохраняем данные для экрана успеха
             const sentData = {
                 phone: phoneInput.value.trim(),
                 sender: senderInput.value.trim(),
@@ -565,12 +729,12 @@
 
                     setTimeout(() => {
                         progressSection.classList.remove('active');
-                        // Заполняем данные перед показом
                         outPhone.textContent = sentData.phone;
                         outSender.textContent = sentData.sender;
                         outMessage.textContent = sentData.message;
                         outTime.textContent = sentData.time;
                         successBlock.classList.add('active');
+                        playSuccessSound();
                     }, 600);
                 } else {
                     progressFill.style.width = progress + '%';
@@ -579,6 +743,7 @@
             }, 200);
         }
 
+        // ==== СБРОС ====
         function resetForm() {
             successBlock.classList.remove('active');
             progressSection.classList.remove('active');
@@ -586,16 +751,19 @@
             phoneInput.value = '';
             senderInput.value = '';
             messageInput.value = '';
-            charCounter.textContent = '0 / 160';
-            charCounter.classList.remove('limit');
+            updateCharCounter();
             phoneInput.classList.remove('invalid');
             senderInput.classList.remove('invalid');
             messageInput.classList.remove('invalid');
             phoneInput.focus();
         }
 
+        // ==== СЛУШАТЕЛИ ====
         sendBtn.addEventListener('click', startSending);
         newBtn.addEventListener('click', resetForm);
+
+        // Инициализация
+        updateCharCounter();
     </script>
 </body>
-    </html>
+</html>   
